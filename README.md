@@ -10,6 +10,9 @@ Il sistema gestisce tre tipologie di utenti con permessi granulari grazie a **Sp
 * **Instructor (istruttore)**: Gestione delle classi, visualizzazione dei partecipanti e pianificazione degli allenamenti.
 * **Cliente (cliente)**: Visualizzazione del proprio abbonamento, prenotazione delle classi e gestione del profilo.
 
+
+* **Ogni cliente può avere un solo abbonametnto di tipo annuale, mensile o trimestrale. 
+
 ---
 
 ## 🛠 Tech Stack
@@ -21,7 +24,7 @@ Il sistema gestisce tre tipologie di utenti con permessi granulari grazie a **Sp
 * **MySQL**: Database relazionale.
 * **Maven**: Gestione delle dipendenze.
 
----
+--- 
 
 ## 🔑 Sicurezza e Ruoli
 
@@ -30,8 +33,8 @@ L'accesso alle risorse è protetto tramite annotazioni `@PreAuthorize`.
 | Ruolo | Permessi |
 | :--- | :--- |
 | `ROLE_ADMIN` | Accesso totale (CRUD Utenti, Abbonamenti, Ruoli). |
-| `ROLE_TEACHER` | Gestione Classi e visualizzazione iscritti. |
-| `ROLE_USER` | Visualizzazione profilo e prenotazioni. |
+| `ROLE_INSTRUCTOR` | Gestione Classi e visualizzazione iscritti. |
+| `ROLE_CLIENT` | Visualizzazione profilo e prenotazioni. |
 
 ---
 
