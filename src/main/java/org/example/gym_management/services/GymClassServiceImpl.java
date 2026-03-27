@@ -47,19 +47,21 @@ public class GymClassServiceImpl implements GymClassService {
 
     @Override
     public GymClass updateCustomGymCLass(GymClassRequestDto request, GymClass gymClass){
-        User instructor = userService.findUserById(request.getInstructorId());
-        if(!instructor.isInstructor()){
+        User instructorRequest = userService.findUserById(request.getInstructorId());
+        User instructor2 = gymClass.getInstructor();
+        if(!instructorRequest.isInstructor()){
             throw new UserNotInstructorException("The user is not instructor");
         }
-        if(gymClassRepository.instructorIsBusy(instructor, gymClass.getStartDate(), gymClass.getEndDate() )){
+        if (!instructor2.equals(instructorRequest) && gymClassRepository.instructorIsBusy(instructorRequest, gymClass.getStartDate(), gymClass.getEndDate())) {
             throw new UserIsBusyException("The instructor is already in another class in that time!");
         }
+
         gymClass.setName(request.getName());
         gymClass.setDescription(request.getDescription());
         gymClass.setNPlaces(request.getNPlaces());
         gymClass.setStartDate(request.getStartDate());
         gymClass.setEndDate(request.getEndDate());
-        gymClass.setInstructor(instructor);
+        gymClass.setInstructor(instructorRequest);
         return saveGymClass(gymClass);
     }
 

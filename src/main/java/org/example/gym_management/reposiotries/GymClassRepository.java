@@ -14,12 +14,5 @@ public interface GymClassRepository extends JpaRepository<GymClass, Long> {
 
     @Query("SELECT (COUNT (g) > 0) FROM GymClass g WHERE g.instructor = :instructor AND  :start < g.endDate AND :end > g.startDate ")
     boolean instructorIsBusy(@Param("instructor") User instructor, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-
-
-//    @Query("SELECT (COUNT(l) > 0) FROM Lezione l " +
-//            "WHERE l.istruttore.id = :id " +
-//            "AND (:inizio < l.fine AND :fine > l.inizio)")
-//    boolean existsOverlap(@Param("id") Long id,
-//                          @Param("inizio") LocalDateTime inizio,
-//                          @Param("fine") LocalDateTime fine);
+    
 }

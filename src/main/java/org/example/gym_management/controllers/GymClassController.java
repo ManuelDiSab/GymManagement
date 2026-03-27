@@ -59,6 +59,4 @@ public class GymClassController {
 
         return new ResponseEntity<>("Class updated correctly!", HttpStatus.OK);
     }
-
-
 }
