@@ -10,4 +10,5 @@ public interface MembershipService {
     public Membership findMembershipById(Long id);
     public void deleteMembershipById(Long id);
     public List<Membership> findAllMemberships();
+    public void updateExpiredMembership();
 }

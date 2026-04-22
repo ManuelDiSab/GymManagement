@@ -25,6 +25,8 @@ public class Membership {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @Column(nullable = false)
+    private boolean active;
 //    @Column(nullable = false)
 //    private double  price;
 
@@ -32,6 +34,7 @@ public class Membership {
         this.subType = subType;
         this.startDate = LocalDate.now();
         this.user = user;
+        this.active = true;
         this.endDate = calculateEndDate(subType, LocalDate.now());
     }
 
@@ -39,12 +42,16 @@ public class Membership {
         return switch (subType) {
             case SUB_ANNUAL -> startDate.plusYears(1);
             case SUB_MONTHLY -> startDate.plusMonths(1);
-            case SUB_QUARTERLY -> startDate.plusDays(3);
+            case SUB_QUARTERLY -> startDate.plusMonths(3);
         };
     }
 
     public void setEndDate(){
         this.endDate = calculateEndDate(subType, startDate);
+    }
+
+    public boolean isActive() {
+        return active && endDate.isAfter(LocalDate.now());
     }
 
 //    private double calculatePrice(EMembership subType) {

@@ -55,7 +55,6 @@ public class GymClassServiceImpl implements GymClassService {
         if (!instructor2.equals(instructorRequest) && gymClassRepository.instructorIsBusy(instructorRequest, gymClass.getStartDate(), gymClass.getEndDate())) {
             throw new UserIsBusyException("The instructor is already in another class in that time!");
         }
-
         gymClass.setName(request.getName());
         gymClass.setDescription(request.getDescription());
         gymClass.setNPlaces(request.getNPlaces());

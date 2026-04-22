@@ -8,6 +8,7 @@ import org.example.gym_management.security.exception.ClientException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ public class MembershipServiceImpl implements MembershipService {
         m.setUser(user);
         m.setSubType(subType);
         m.setStartDate(startDate);
+        m.setActive(true);
         m.setEndDate();
         return m;
     }
@@ -52,5 +54,16 @@ public class MembershipServiceImpl implements MembershipService {
         return membershipRepository.findAll();
     }
 
+    @Override
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateExpiredMembership(){
+        List<Membership> memberships = membershipRepository.findAll();
+        for(Membership m : memberships){
+            if(m.getEndDate().isBefore(LocalDate.now())){
+                m.setActive(false);
+            }
+        }
+        membershipRepository.saveAll(memberships);
+    }
 
 }

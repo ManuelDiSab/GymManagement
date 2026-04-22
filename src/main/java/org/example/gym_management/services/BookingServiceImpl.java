@@ -24,7 +24,9 @@ public class BookingServiceImpl implements BookingService {
     ObjectProvider<Booking> bookingProvider;
 
     public Booking createBooking(User client, GymClass gymClass) {
-
+        if(!client.getSubscription().isActive()){
+            throw new ClientException("User membership is not active");
+        }
         if (bookingRepository.countByGymClassId(gymClass.getId()) >= gymClass.getNPlaces()) {
             throw new ClassIsFullException("This class is already full");
         }
