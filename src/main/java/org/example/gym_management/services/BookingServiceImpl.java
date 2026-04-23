@@ -24,6 +24,9 @@ public class BookingServiceImpl implements BookingService {
     ObjectProvider<Booking> bookingProvider;
 
     public Booking createBooking(User client, GymClass gymClass) {
+        if(!client.isClient()){
+            throw new ClientException("Only a client can book a class");
+        }
         if(!client.getSubscription().isActive()){
             throw new ClientException("User membership is not active");
         }
@@ -36,9 +39,7 @@ public class BookingServiceImpl implements BookingService {
         if (bookingRepository.clientIsBusy(client, gymClass.getStartDate(), gymClass.getEndDate())) {
             throw new UserIsBusyException("Client already has booked a Gym class in that time");
         }
-        if(!client.isClient()){
-            throw new ClientException("Only a client can book a class");
-        }
+
         Booking booking = bookingProvider.getObject();
         booking.setCreatedAt(LocalDateTime.now());
         booking.setGymClass(gymClass);
