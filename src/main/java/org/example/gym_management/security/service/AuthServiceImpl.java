@@ -64,11 +64,11 @@ public class AuthServiceImpl implements AuthService {
     public String register(RegisterDto registerDto) {
         // add check for username exists in database
         if(userRepository.existsByUsername(registerDto.getUsername())){
-            throw new MyAPIException(HttpStatus.BAD_REQUEST, "Account with this username already exists!.");
+            throw new MyAPIException(HttpStatus.CONFLICT, "Account with this username already exists!.");
         }
         // add check for email exists in database
         if(userRepository.existsByEmail(registerDto.getEmail())){
-            throw new MyAPIException(HttpStatus.BAD_REQUEST, "Account with this email already exists!.");
+            throw new MyAPIException(HttpStatus.CONFLICT, "Account with this email already exists!.");
         }
         User user = new User();
         user.setUsername(registerDto.getUsername());

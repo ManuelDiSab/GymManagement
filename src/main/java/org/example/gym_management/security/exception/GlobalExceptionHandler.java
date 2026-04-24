@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -43,6 +44,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<String>(e.getMessage() + ". My Exception Handler", HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler( value = {BadCredentialsException.class})
+    public ResponseEntity<Object> handleBadCredential(BadCredentialsException e, WebRequest request){
+        Map<String,String> body = new HashMap<>();
+        body.put("timestamp", new Date().toString());
+        body.put("message", "Credential are not valid");
+        body.put("details", request.getDescription(false));
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(value = { SQLIntegrityConstraintViolationException.class })
     public ResponseEntity<String> manageSQLICVEx(SQLIntegrityConstraintViolationException e){
         return new ResponseEntity<String>(e.getMessage() + ". My Exception Handler",HttpStatus.CONFLICT);
@@ -62,7 +72,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                         WebRequest webRequest){
         ErrorDetails errorDetails = new ErrorDetails(new Date(), exception.getMessage(),
                 webRequest.getDescription(false));
-        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDetails, exception.getStatus());
     }
     // global exceptions
     @ExceptionHandler(Exception.class)

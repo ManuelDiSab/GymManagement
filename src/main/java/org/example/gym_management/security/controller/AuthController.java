@@ -1,5 +1,6 @@
 package org.example.gym_management.security.controller;
 
+import jakarta.validation.Valid;
 import org.example.gym_management.security.payload.JWTAuthResponse;
 import org.example.gym_management.security.payload.LoginDto;
 import org.example.gym_management.security.payload.RegisterDto;
@@ -24,7 +25,7 @@ public class AuthController {
 
     // Build Login REST API
     @PostMapping(value = {"/login", "/signin"})
-    public ResponseEntity<JWTAuthResponse> login(@RequestBody LoginDto loginDto){
+    public ResponseEntity<JWTAuthResponse> login(@Valid @RequestBody LoginDto loginDto){
     	String token = authService.login(loginDto);
         JWTAuthResponse jwtAuthResponse = new JWTAuthResponse();
         jwtAuthResponse.setUsername(loginDto.getUsername());
@@ -35,7 +36,7 @@ public class AuthController {
 
     // Build Register REST API
     @PostMapping(value = {"/register", "/signup"})
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto){
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerDto){
         String response = authService.register(registerDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

@@ -2,6 +2,8 @@ package org.example.gym_management.security.payload;
 
 import java.util.Set;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +18,9 @@ import lombok.ToString;
 public class RegisterDto {
     private String name;
     private String username;
+
+    @NotBlank
+    @Email
     private String email;
     private String password;
     // Passagio di ruoli dal client (Facoltativo)
