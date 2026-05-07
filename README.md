@@ -1,64 +1,63 @@
- Gym Management System API REST
- 
-Applicazione sviluppata con Spring, Jpa, Spring security, 
+Gym Management System – REST API (Spring Boot)
+Backend REST API for comprehensive gym management, designed with a scalable and secure architecture.
 
-## 🚀 Caratteristiche Principali
+🔥 Overview
+This project simulates a real-world system used by a gym to manage:
 
-Il sistema gestisce tre tipologie di utenti con permessi granulari grazie a **Spring Security**:
+Users with different roles
 
-* **Admin**: Gestione completa degli utenti, assegnazione ruoli, creazione/eliminazione abbonamenti e monitoraggio globale.
-* **Instructor (istruttore)**: Gestione delle classi, visualizzazione dei partecipanti e pianificazione degli allenamenti.
-* **Cliente (cliente)**: Visualizzazione del proprio abbonamento, prenotazione delle classi e gestione del profilo.
+Memberships
 
+Classes and bookings
 
-* **Ogni cliente può avere un solo abbonametnto di tipo annuale, mensile o trimestrale. 
+The goal is to replicate realistic business logic and backend-side permission management.
 
----
+🧠 Key Features
+JWT Authentication with Spring Security
 
-## 🛠 Tech Stack
+Role Management (Admin, Instructor, Client) with granular authorizations
 
-* **Java 17+**
-* **Spring Boot 3.x**
-* **Spring Data JPA**: Per la persistenza dei dati.
-* **Spring Security**: Autenticazione e autorizzazione basata su **JWT** (JSON Web Token).
-* **MySQL**: Database relazionale.
-* **Maven**: Gestione delle dipendenze.
+Membership Management (monthly, quarterly, annual)
 
---- 
+Class Booking System
 
-## 🔑 Sicurezza e Ruoli
+Entity Relationships managed via JPA (OneToMany, ManyToOne)
 
-L'accesso alle risorse è protetto tramite annotazioni `@PreAuthorize`.
+🏗 Architecture
+The project follows a layered structure:
 
-| Ruolo | Permessi |
-| :--- | :--- |
-| `ROLE_ADMIN` | Accesso totale (CRUD Utenti, Abbonamenti, Ruoli). |
-| `ROLE_INSTRUCTOR` | Gestione Classi e visualizzazione iscritti. |
-| `ROLE_CLIENT` | Visualizzazione profilo e prenotazioni. |
+Controller → handles HTTP requests
 
----
+Service → business logic
 
-## 📂 Struttura degli Endpoint (Esempi)
+Repository → data access (Spring Data JPA)
 
-### Autenticazione
-* `POST /api/auth/register` - Registrazione nuovo utente.
-* `POST /api/auth/login` - Login e ricezione del token JWT.
+DTOs (Data Transfer Objects) are used to decouple internal models from the APIs.
 
-### Gestione Utenti (Admin)
-* `GET /api/users` - Lista completa degli utenti.
-* `PATCH /api/users/{id}/makeadmin` - Promuove un utente ad Admin.
+🔐 Security
+Authentication via JWT
 
----
+Authorization via @PreAuthorize
 
-## ⚙️ Configurazione Locale
+Endpoint protection based on user roles
 
-1. **Clona il repository**:
-   ```bash
-   git clone [https://github.com/tuo-username/gym-management.git](https://github.com/tuo-username/gym-management.git)
-2. Configura il Database:
-Modifica src/main/resources/application.properties:
-Properties
-spring.datasource.url=jdbc:mysql://localhost:3306/gym_db
-spring.datasource.username=tuo_user
-spring.datasource.password=tua_password
+🛠 Tech Stack
+Java 17
 
+Spring Boot 3
+
+Spring Security (JWT)
+
+Spring Data JPA
+
+MySQL
+
+Maven
+
+⚙️ Setup
+Clone the repository
+
+Configure MySQL
+
+Run with:
+mvn spring-boot:run
