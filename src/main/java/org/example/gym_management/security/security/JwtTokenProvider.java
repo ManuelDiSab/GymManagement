@@ -61,7 +61,13 @@ public class JwtTokenProvider {
             Jwts.parserBuilder()
                     .setSigningKey(key())
                     .build()
-                    .parse(token);
+                    /* IT: Utilizzo parseClaimsJws() invece di parse() per garantire che il token
+                     * sia firmato digitalmente. Questo metodo verifica l'integrità del JWS
+                     * contro la nostra chiave segreta, impedendo l'accettazione di token manomessi.
+                     * EN: I use parseClaimsJws() instead of parse() to ensure  the token is
+                     * digitally signed. This method verify the integrity of JWS against the secret key,
+                     * preventing tempered tokens to be accepted  */
+                    .parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException ex) {
             throw new MyAPIException(HttpStatus.BAD_REQUEST, "Invalid JWT token");

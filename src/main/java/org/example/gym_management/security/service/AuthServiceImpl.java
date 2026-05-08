@@ -28,23 +28,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired @Qualifier("creaSuperAdmin") ObjectProvider<User> admin;
-    private AuthenticationManager authenticationManager;
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtTokenProvider jwtTokenProvider;
+    private final ObjectProvider<User> admin;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            UserRepository userRepository,
                            RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder,
-                           JwtTokenProvider jwtTokenProvider) {
+                           JwtTokenProvider jwtTokenProvider,
+                           @Qualifier("creaSuperAdmin") ObjectProvider<User> admin) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.admin = admin;
     }
 
     @Override
@@ -54,8 +56,7 @@ public class AuthServiceImpl implements AuthService {
         		new UsernamePasswordAuthenticationToken(
         				loginDto.getUsername(), loginDto.getPassword()
         		)
-        ); 
-    	System.out.println(authentication);
+        );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return jwtTokenProvider.generateToken(authentication);
     }
@@ -78,25 +79,38 @@ public class AuthServiceImpl implements AuthService {
         Set<Role> roles = new HashSet<>();
         // I valori li assegno in base se passo i ruoli dal client o meno.
         if(registerDto.getRoles() != null) {
-	        registerDto.getRoles().forEach(role -> {
-	        	Role userRole = roleRepository.findByRoleName(getRole(role)).get();
-	        	roles.add(userRole);
-	        });
+            registerDto.getRoles().forEach(role -> {
+                ERole eRole = getRole(role);
+                // 🔒 Blocco Privilege Escalation: il ruolo ADMIN non può essere
+                // auto-assegnato durante la registrazione pubblica.
+                // Per promuovere un utente ad ADMIN, usare l'endpoint dedicato:
+                // PATCH /api/users/{id}/makeadmin  (solo Admin può chiamarlo)
+                if(eRole == ERole.ROLE_ADMIN) {
+                    throw new MyAPIException(HttpStatus.FORBIDDEN,
+                        "Non puoi assegnarti il ruolo ADMIN in fase di registrazione.");
+                }
+                Role userRole = roleRepository.findByRoleName(eRole)
+                    .orElseThrow(() -> new MyAPIException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Ruolo non trovato nel database: " + role));
+                roles.add(userRole);
+            });
         } else {
-        	Role userRole = roleRepository.findByRoleName(ERole.ROLE_CLIENT).get();
-        	roles.add(userRole);
+            Role userRole = roleRepository.findByRoleName(ERole.ROLE_CLIENT)
+                .orElseThrow(() -> new MyAPIException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ruolo CLIENT non trovato nel database."));
+            roles.add(userRole);
         }
         user.setRoles(roles);
-        System.out.println(user);
         userRepository.save(user);
         return "User registered successfully!.";
     }
 
     @Override
     public User makeAdmin(User user) {
-        Role admin =  roleRepository.findByRoleName(ERole.ROLE_ADMIN).orElse(null);
-        System.out.println("ruolo "  + admin);
-        user.getRoles().add(admin);
+        Role roleAdmin =  roleRepository.findByRoleName(ERole.ROLE_ADMIN)
+                .orElseThrow(() -> new MyAPIException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Admin role not found in database."));
+        user.getRoles().add(roleAdmin);
         return userRepository.save(user);
     }
 
@@ -104,8 +118,9 @@ public class AuthServiceImpl implements AuthService {
     public void createAdmin() {
         Set<Role> userRoles = new HashSet<>();
         User user  = admin.getObject(userRoles);
-        user.setUsername(user.getUsername());
-        user.setEmail(user.getEmail());
+
+        // Se l'admin esiste non faccio niente | If admin already exist do nothing
+        if(userRepository.existsByUsername(user.getUsername())) return;
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRoles.add(roleRepository.findByRoleName(ERole.ROLE_ADMIN).orElse(null));
         userRoles.add(roleRepository.findByRoleName(ERole.ROLE_CLIENT).orElse(null));
@@ -115,9 +130,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public ERole getRole(String role) {
-    	if(role.equals("ADMIN")) return ERole.ROLE_ADMIN;
-    	else if(role.equals("INSTRUCTOR")) return ERole.ROLE_INSTRUCTOR;
-    	else return ERole.ROLE_CLIENT;
+    	try{
+            return ERole.valueOf("ROLE_" + role.toUpperCase());
+        }catch(IllegalArgumentException e){
+            throw new MyAPIException(HttpStatus.BAD_REQUEST, "Invalid role : " + role);
+        }
     }
 
 }
