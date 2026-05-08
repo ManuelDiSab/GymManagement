@@ -33,4 +33,6 @@ build/
 .vscode/
 
 ### Log ###
-application.log
+*.log
+### env file ###
+src/main/resources/app.env
