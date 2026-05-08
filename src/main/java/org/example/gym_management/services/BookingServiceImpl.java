@@ -2,14 +2,15 @@ package org.example.gym_management.services;
 
 import org.example.gym_management.entities.Booking;
 import org.example.gym_management.entities.GymClass;
-import org.example.gym_management.reposiotries.BookingRepository;
+import org.example.gym_management.repositories.BookingRepository;
 import org.example.gym_management.security.entity.User;
 import org.example.gym_management.security.exception.ClassIsFullException;
 import org.example.gym_management.security.exception.ClientException;
+import org.example.gym_management.security.exception.MyAPIException;
 import org.example.gym_management.security.exception.UserIsBusyException;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,17 +18,20 @@ import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
-    @Autowired
-    BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired @Qualifier("createBooking")
-    ObjectProvider<Booking> bookingProvider;
+    private final ObjectProvider<Booking> bookingProvider;
+
+    public BookingServiceImpl(BookingRepository bookingRepository,@Qualifier("createBooking") ObjectProvider<Booking> bookingProvider) {
+        this.bookingRepository = bookingRepository;
+        this.bookingProvider = bookingProvider;
+    }
 
     public Booking createBooking(User client, GymClass gymClass) {
         if(!client.isClient()){
             throw new ClientException("Only a client can book a class");
         }
-        if(!client.getSubscription().isActive()){
+        if(!client.getMembership().isActive()){
             throw new ClientException("User membership is not active");
         }
         if (bookingRepository.countByGymClassId(gymClass.getId()) >= gymClass.getNPlaces()) {
@@ -57,7 +61,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findBookingById(long id) {
-        return bookingRepository.findById(id).get();
+        return bookingRepository.findById(id).orElseThrow(
+                () -> new MyAPIException(HttpStatus.NOT_FOUND, "Booking with id " + id + " not found")
+        );
     }
 
     @Override

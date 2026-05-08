@@ -2,13 +2,14 @@ package org.example.gym_management.services;
 
 import org.example.gym_management.dto.GymClassRequestDto;
 import org.example.gym_management.entities.GymClass;
+import org.example.gym_management.security.exception.MyAPIException;
 import org.example.gym_management.security.exception.UserIsBusyException;
 import org.example.gym_management.security.exception.UserNotInstructorException;
-import org.example.gym_management.reposiotries.GymClassRepository;
+import org.example.gym_management.repositories.GymClassRepository;
 import org.example.gym_management.security.entity.User;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,10 +18,17 @@ import java.util.List;
 @Service
 public class GymClassServiceImpl implements GymClassService {
 
-    @Autowired GymClassRepository gymClassRepository;
-    @Autowired
-    UserServiceImpl userService;
-    @Autowired @Qualifier("createGymClass") ObjectProvider <GymClass> gymClassProvider;
+    private final GymClassRepository gymClassRepository;
+    private final UserServiceImpl userService;
+    private final ObjectProvider <GymClass> gymClassProvider;
+
+    public GymClassServiceImpl(GymClassRepository gymClassRepository,  UserServiceImpl userService,
+                               @Qualifier("createGymClass") ObjectProvider <GymClass> gymClassProvider) {
+        this.gymClassRepository = gymClassRepository;
+        this.userService = userService;
+        this.gymClassProvider = gymClassProvider;
+    }
+
     public GymClass createCustomGymCLass(String name, String description, int nPlaces, LocalDateTime start, LocalDateTime end, User instructor){
         if(!instructor.isInstructor()){
             throw new UserNotInstructorException("The user is not instructor");
@@ -41,7 +49,6 @@ public class GymClassServiceImpl implements GymClassService {
     // Database methods
     @Override
     public GymClass saveGymClass(GymClass gymClass) {
-        System.out.println("Saving Gym Class");
         return gymClassRepository.save(gymClass);
     }
 
@@ -66,20 +73,18 @@ public class GymClassServiceImpl implements GymClassService {
 
     @Override
     public void deleteGymClass(GymClass gymClass) {
-        System.out.println("Deleting Gym Class");
         gymClassRepository.delete(gymClass);
-        System.out.println("Deleted Gym Class");
     }
 
     @Override
     public GymClass findGymCLassById(long id) {
-        System.out.println("Finding Gym Class by ID");
-        return gymClassRepository.findById(id).get();
+        return gymClassRepository.findById(id).orElseThrow(
+                ()->new MyAPIException(HttpStatus.NOT_FOUND, "Gym Class with id  " + id +" not found")
+        );
     }
 
     @Override
     public List<GymClass> findAllGymClasses() {
-        System.out.println("Finding All Gym Classes");
         return gymClassRepository.findAll();
     }
 }

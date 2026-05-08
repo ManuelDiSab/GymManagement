@@ -2,12 +2,13 @@ package org.example.gym_management.services;
 
 import org.example.gym_management.entities.EMembership;
 import org.example.gym_management.entities.Membership;
-import org.example.gym_management.reposiotries.MembershipRepository;
+import org.example.gym_management.repositories.MembershipRepository;
 import org.example.gym_management.security.entity.User;
 import org.example.gym_management.security.exception.ClientException;
+import org.example.gym_management.security.exception.MyAPIException;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +17,16 @@ import java.util.List;
 
 @Service
 public class MembershipServiceImpl implements MembershipService {
-    @Autowired
-    MembershipRepository membershipRepository;
-    @Autowired @Qualifier("createMembership") ObjectProvider<Membership> membershipProvider;
+    private final MembershipRepository membershipRepository;
+    private final ObjectProvider<Membership> membershipProvider;
 
+
+    public MembershipServiceImpl(MembershipRepository membershipRepository,@Qualifier("createMembership") ObjectProvider<Membership> membershipProvider) {
+        this.membershipRepository = membershipRepository;
+        this.membershipProvider = membershipProvider;
+    }
+
+    @Override
     public Membership createMembership(User user, EMembership subType, LocalDate startDate) {
         if(!user.isClient()){
             throw new ClientException("The user has to be a client to create a membership");
@@ -41,7 +48,9 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     public Membership findMembershipById(Long id) {
-        return membershipRepository.findById(id).get();
+        return membershipRepository.findById(id).orElseThrow(
+                () -> new MyAPIException(HttpStatus.NOT_FOUND, "Membership with id " + id + " not found")
+        );
     }
 
     @Override
@@ -57,13 +66,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Override
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateExpiredMembership(){
-        List<Membership> memberships = membershipRepository.findAll();
-        for(Membership m : memberships){
-            if(m.getEndDate().isBefore(LocalDate.now())){
-                m.setActive(false);
-            }
-        }
-        membershipRepository.saveAll(memberships);
+        membershipRepository.deactivateMembership(LocalDate.now());
     }
 
 }
