@@ -16,7 +16,7 @@ public class LoginDto {
     private String password;
 }
 
-//Il client dovrà inviare un oggetto JSON nel body con questa forma
+//Il client dovrà inviare un oggetto JSON nel body con questa forma | Client should send a JSON object that looks like this
 /*{
     "username": "mariorossi",
     "password": "Pa$$w0rd!"

@@ -9,4 +9,6 @@ public class GymClassResponseDto {
     private String name;
     private String description;
     private LocalDateTime startDate;
+    private String instructorName;
+    private int nPlaces;
 }
