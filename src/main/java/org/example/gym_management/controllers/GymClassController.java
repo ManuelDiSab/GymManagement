@@ -1,5 +1,6 @@
 package org.example.gym_management.controllers;
 
+import jakarta.validation.Valid;
 import org.example.gym_management.dto.GymClassRequestDto;
 import org.example.gym_management.entities.GymClass;
 import org.example.gym_management.security.entity.User;
@@ -14,10 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/classes")
 public class GymClassController {
-    @Autowired
-    GymClassServiceImpl gymClassService;
-    @Autowired
-    UserService userService;
+    private final GymClassServiceImpl gymClassService;
+    private final UserService userService;
+
+    public GymClassController(GymClassServiceImpl gymClassService, UserService userService) {
+        this.gymClassService = gymClassService;
+        this.userService = userService;
+    }
+
 
     @GetMapping
     @PreAuthorize("isAuthenticated()") // Funziona
@@ -33,7 +38,7 @@ public class GymClassController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")  // Funziona
-    public ResponseEntity<?> createGymClass(@RequestBody GymClassRequestDto request) {
+    public ResponseEntity<?> createGymClass(@RequestBody @Valid GymClassRequestDto request) {
         User instructor = userService.findUserById(request.getInstructorId());
         GymClass g = gymClassService.createCustomGymCLass(request.getName(), request.getDescription(), request.getNPlaces(), request.getStartDate(), request.getEndDate(), instructor);
         return ResponseEntity.ok(gymClassService.saveGymClass(g));
@@ -48,7 +53,7 @@ public class GymClassController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") // Funziona
-    public ResponseEntity<?> updateGymClass(@PathVariable Long id, @RequestBody GymClassRequestDto request) {
+    public ResponseEntity<?> updateGymClass(@PathVariable Long id,@Valid @RequestBody GymClassRequestDto request) {
         GymClass g = gymClassService.findGymCLassById(id);
         if (g == null) {
             return new ResponseEntity<>("No Class with that id!", HttpStatus.NOT_FOUND);

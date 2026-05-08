@@ -1,12 +1,9 @@
 package org.example.gym_management.controllers;
 
 
-import org.example.gym_management.security.entity.ERole;
-import org.example.gym_management.security.entity.Role;
 import org.example.gym_management.security.entity.User;
-import org.example.gym_management.security.service.AuthServiceImpl;
+import org.example.gym_management.security.service.AuthService;
 import org.example.gym_management.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +11,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    @Autowired UserService userService;
-    @Autowired AuthServiceImpl authService;
+    private final UserService userService;
+    private final AuthService authService;
+
+    public UserController(UserService userService, AuthService authService) {
+        this.userService = userService;
+        this.authService = authService;
+    }
+
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')") // Funziona

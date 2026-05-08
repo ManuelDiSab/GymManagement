@@ -2,10 +2,13 @@ package org.example.gym_management.controllers;
 import org.example.gym_management.dto.MembershipRequestDto;
 import org.example.gym_management.entities.Booking;
 import org.example.gym_management.entities.Membership;
+import org.example.gym_management.services.MembershipService;
 import org.example.gym_management.services.MembershipServiceImpl;
+import org.example.gym_management.services.UserService;
 import org.example.gym_management.services.UserServiceImpl;
 import org.example.gym_management.utilities.MembershipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +19,19 @@ import java.util.List;
 @RequestMapping("/api/membership")
 public class MembershipController {
 
-    @Autowired
-    MembershipServiceImpl membershipService;
-    @Autowired
-    UserServiceImpl userService;
-    @Autowired
-    MembershipMapper membershipMapper;
+    private final MembershipService membershipService;
+    private final UserService userService;
+    private final MembershipMapper membershipMapper;
+
+    public MembershipController(MembershipService membershipService, UserService userService, MembershipMapper membershipMapper ){
+        this.membershipService = membershipService;
+        this.userService = userService;
+        this.membershipMapper = membershipMapper;
+    }
 
 
     @GetMapping // funziona
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllMemberships() {
         return ResponseEntity.ok(membershipMapper.toDtoList(membershipService.findAllMemberships()));
     }
@@ -39,10 +45,9 @@ public class MembershipController {
     @PostMapping // Funziona
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> saveMembership(@RequestBody MembershipRequestDto request) {
-        System.out.println("ESUB: " + request.getSubType());
         Membership membership = membershipService.createMembership(userService.findUserById(request.getIdUser()), request.getSubType(), request.getStartDate());
         membershipService.saveMembership(membership);
-        return  ResponseEntity.ok(membershipMapper.toDto(membership));
+        return ResponseEntity.status(HttpStatus.CREATED).body(membershipMapper.toDto(membership));
     }
 
     @DeleteMapping("/{id}") // Funziona
