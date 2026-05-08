@@ -3,9 +3,9 @@ package org.example.gym_management.controllers;
 import org.example.gym_management.entities.EMembership;
 import org.example.gym_management.entities.GymClass;
 import org.example.gym_management.entities.Membership;
-import org.example.gym_management.reposiotries.BookingRepository;
-import org.example.gym_management.reposiotries.GymClassRepository;
-import org.example.gym_management.reposiotries.MembershipRepository;
+import org.example.gym_management.repositories.BookingRepository;
+import org.example.gym_management.repositories.GymClassRepository;
+import org.example.gym_management.repositories.MembershipRepository;
 import org.example.gym_management.security.entity.ERole;
 import org.example.gym_management.security.entity.Role;
 import org.example.gym_management.security.entity.User;
@@ -22,7 +22,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import tools.jackson.databind.ObjectMapper;
 
 
 import java.time.LocalDate;
@@ -43,20 +42,24 @@ class BookingControllerIT {
     @Autowired private GymClassRepository gymClassRepository;
     @Autowired private RoleRepository roleRepository;
     @Autowired private MembershipRepository  membershipRepository;
-    @Autowired private ObjectMapper objectMapper;
 
     private Long clientID;
     private Long gymClassID;
 
     @BeforeEach
     void setUp() {
-
         bookingRepository.deleteAll();
         gymClassRepository.deleteAll();
+        membershipRepository.deleteAll();
         userRepository.deleteAll();
         //Roles
-        Role clientRole = new Role(1L, ERole.ROLE_CLIENT);
-        Role instructorRole = new Role(2L, ERole.ROLE_INSTRUCTOR);
+        Role clientRole = roleRepository.findByRoleName(ERole.ROLE_CLIENT).orElseGet(
+                () -> roleRepository.save(new Role(null, ERole.ROLE_CLIENT))
+        );
+
+        Role instructorRole = roleRepository.findByRoleName(ERole.ROLE_INSTRUCTOR).orElseGet(
+                () -> roleRepository.save(new Role(null, ERole.ROLE_INSTRUCTOR))
+        );
         // Client
         User client = new User();
         client.setUsername("Test_client");
@@ -80,8 +83,8 @@ class BookingControllerIT {
         membership.setEndDate();
         clientID = userRepository.save(client).getId();
         membershipRepository.save(membership);
-
-        client.setSubscription(membership);
+        client.setMembership(membership);
+        userRepository.save(client);
 
         // GymClass
         GymClass gymClass = new GymClass();
@@ -96,16 +99,16 @@ class BookingControllerIT {
 
     @Test
     @WithMockUser(username = "Test_client", roles = {"CLIENT"})
-    @DisplayName("POST /api/bookings - Should create booking and return 201")
+    @DisplayName("POST /api/booking - Should create booking and return 201")
     void createBookingIntegrationTest() throws Exception {
         String bookingJson = String.format("{\"clientId\": %d, \"gymClassId\": %d}", clientID, gymClassID);
         // WHEN & THEN
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/bookings")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/booking")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bookingJson))
                 .andExpect(status().isCreated()) // Should return 201
-                .andExpect(jsonPath("$.id").exists()) // Verify that the json has an id
+                .andExpect(jsonPath("$.id").exists()) // Verify that the JSON has an id
                 .andExpect(jsonPath("$.client.id").value(clientID));
     }
 

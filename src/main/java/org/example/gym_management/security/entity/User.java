@@ -49,7 +49,7 @@ public class User {
 
     // relazione con abbonamenti
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "user")
-    private Membership subscription;
+    private Membership membership;
 
     //relazione con prenotazioni
     @OneToMany(mappedBy = "client", cascade =  CascadeType.ALL)

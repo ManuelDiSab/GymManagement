@@ -22,39 +22,31 @@ public class AuthRunner implements ApplicationRunner {
 	@Autowired UserRepository userRepository;
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		System.out.println("Run...");
-
-		// Leggo nel DB se sono già presenti ruoli salvati
 		List<Role> roleList = roleRepository.findAll();
-		if(roleList.size() == 0) {
-			// Metodo da lanciare solo la prima volta
-			// Serve per inizializzare i ruoli nel DB
+		if(roleList.isEmpty()) { // Solo se nono ci sono ruoli salvati | Only if there are not roles saved
+			// Serve per inizializzare i ruoli nel DB | Initialize the roles in database
 			setRoleDefault();
-		} else {
-			System.out.println(roleList);
 		}
 		Role admin =roleRepository.findByRoleName(ERole.ROLE_ADMIN).orElse(null);
 		if( userRepository.findAll().isEmpty() || userRepository.findByRolesContaining(admin).isEmpty()) {
-			System.out.println("Creo admin");
 			setSuperAdmin();
 		}else{
-			System.out.println("Super admin");
 			userRepository.findByRolesContaining(admin).forEach(User -> System.out.println(User.getUsername()) );
 		}
 	}
 
 	private void setRoleDefault() {
-		// Creo un ruolo Admin e lo salvo nel DB
+		// Creo un ruolo Admin e lo salvo nel DB | Create role Admin and save it in DB
 		Role admin = new Role();
 		admin.setRoleName(ERole.ROLE_ADMIN);
 		roleRepository.save(admin);
 
-		// Creo un ruolo User e lo salvo nel DB
+		// Creo un ruolo User e lo salvo nel DB | Create role Client and save it in DB
 		Role client = new Role();
 		client.setRoleName(ERole.ROLE_CLIENT);
 		roleRepository.save(client);
 
-		// Creo un ruolo Moderator e lo salvo nel DB
+		// Creo un ruolo Instructor e lo salvo nel DB | Create role Instructor and save it in DB
 		Role instructor = new Role();
 		instructor.setRoleName(ERole.ROLE_INSTRUCTOR);
 		roleRepository.save(instructor);

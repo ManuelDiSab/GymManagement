@@ -4,12 +4,13 @@ import org.example.gym_management.entities.Booking;
 import org.example.gym_management.entities.EMembership;
 import org.example.gym_management.entities.GymClass;
 import org.example.gym_management.entities.Membership;
-import org.example.gym_management.reposiotries.BookingRepository;
+import org.example.gym_management.repositories.BookingRepository;
 import org.example.gym_management.security.entity.ERole;
 import org.example.gym_management.security.entity.Role;
 import org.example.gym_management.security.entity.User;
 import org.example.gym_management.security.exception.ClassIsFullException;
 import org.example.gym_management.security.exception.ClientException;
+import org.example.gym_management.security.exception.MyAPIException;
 import org.example.gym_management.security.exception.UserIsBusyException;
 import org.example.gym_management.security.repository.RoleRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,7 +75,7 @@ class BookingServiceImplTest {
         membership.setUser(client);
         membership.setSubType(EMembership.SUB_MONTHLY);
         membership.setEndDate();
-        client.setSubscription(membership);
+        client.setMembership(membership);
 
         gymClass = new GymClass();
         gymClass.setId(1L);
@@ -104,7 +106,7 @@ class BookingServiceImplTest {
     @Test
     @DisplayName("Should throw exception for a inactive membership")
     void createBookingWhenInactiveSubscription(){
-        client.getSubscription().setActive(false);
+        client.getMembership().setActive(false);
         ClientException exception = assertThrows(ClientException.class, () -> bookingService.createBooking(client, gymClass));
         assertEquals("User membership is not active", exception.getMessage());
     }
@@ -137,9 +139,16 @@ class BookingServiceImplTest {
     @DisplayName("Should throw ClientException when a user that it's not a client try book a class")
     void createBookingWhenUserNotAClient(){
         Membership m = new Membership(EMembership.SUB_QUARTERLY, instructor);
-        instructor.setSubscription(m);
+        instructor.setMembership(m);
         ClientException exception = assertThrows(ClientException.class, () -> bookingService.createBooking(instructor, gymClass));
         assertEquals("Only a client can book a class", exception.getMessage());
     }
 
+
+    @Test
+    @DisplayName("Should throw exception when booking not found")
+    void findBookingByIdNotFound() {
+        when(bookingRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(MyAPIException.class, () -> bookingService.findBookingById(99L));
+    }
 }

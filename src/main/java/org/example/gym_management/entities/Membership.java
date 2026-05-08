@@ -1,15 +1,17 @@
 package org.example.gym_management.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.gym_management.security.entity.User;
 
 import java.time.LocalDate;
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "subscriptions")
+@Table(name = "membership")
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

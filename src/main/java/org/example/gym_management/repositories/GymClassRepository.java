@@ -1,4 +1,4 @@
-package org.example.gym_management.reposiotries;
+package org.example.gym_management.repositories;
 
 import org.example.gym_management.entities.GymClass;
 import org.example.gym_management.security.entity.User;

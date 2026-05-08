@@ -1,4 +1,4 @@
-package org.example.gym_management.reposiotries;
+package org.example.gym_management.repositories;
 
 import jakarta.transaction.Transactional;
 import org.example.gym_management.entities.Membership;
@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Repository
 public interface MembershipRepository extends JpaRepository<Membership,Long> {

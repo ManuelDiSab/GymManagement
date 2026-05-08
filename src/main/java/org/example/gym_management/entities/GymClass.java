@@ -2,16 +2,15 @@ package org.example.gym_management.entities;
 
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.example.gym_management.security.entity.User;
 
 import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity
+@Getter
+@Setter
 @Table(name = "gym_classes")
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
@@ -23,10 +22,9 @@ public class GymClass {
     @Column(name = "class_id", nullable = false)
     private long id;
 
-    @Column(name = "n_places", nullable = true)
+    @Column(name = "n_places")
     private int nPlaces;
 
-    @Column(nullable = true)
     private String description;
 
     //ManyToOne

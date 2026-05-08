@@ -29,6 +29,8 @@ public class BookingMapperImpl implements BookingMapper {
             classDto.setName(booking.getGymClass().getName());
             classDto.setDescription(booking.getGymClass().getDescription());
             classDto.setStartDate(booking.getGymClass().getStartDate());
+            classDto.setNPlaces(booking.getGymClass().getNPlaces());
+            classDto.setInstructorName(booking.getGymClass().getInstructor().getUsername());
             dto.setGymClass(classDto);
         }
         return dto;
