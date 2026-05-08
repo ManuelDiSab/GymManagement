@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
@@ -23,19 +24,16 @@ public class JwtTokenProvider {
 
     // generate JWT token
     public String generateToken(Authentication authentication){
-        String username = authentication.getName();
+        String username =  authentication.getName();
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationDate);
 
-        Date currentDate = new Date();
-
-        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
-
-        String token = Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(expireDate)
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(now)
+                .expiration(expiryDate)
                 .signWith(key())
                 .compact();
-        return token;
     }
 
     private Key key(){
@@ -46,28 +44,21 @@ public class JwtTokenProvider {
 
     // get username from Jwt token
     public String getUsername(String token){
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key())
+        return Jwts.parser()
+                .verifyWith((SecretKey) key())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
-        String username = claims.getSubject();
-        return username;
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     // validate Jwt token
     public boolean validateToken(String token){
         try{
-            Jwts.parserBuilder()
-                    .setSigningKey(key())
+            Jwts.parser()
+                    .verifyWith((SecretKey) key())
                     .build()
-                    /* IT: Utilizzo parseClaimsJws() invece di parse() per garantire che il token
-                     * sia firmato digitalmente. Questo metodo verifica l'integrità del JWS
-                     * contro la nostra chiave segreta, impedendo l'accettazione di token manomessi.
-                     * EN: I use parseClaimsJws() instead of parse() to ensure  the token is
-                     * digitally signed. This method verify the integrity of JWS against the secret key,
-                     * preventing tempered tokens to be accepted  */
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return true;
         } catch (MalformedJwtException ex) {
             throw new MyAPIException(HttpStatus.BAD_REQUEST, "Invalid JWT token");
