@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +28,6 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private UserDetailsService userDetailsService;
 
     private JwtAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -36,7 +36,6 @@ public class SecurityConfig {
     public SecurityConfig(UserDetailsService userDetailsService,
                           JwtAuthenticationEntryPoint authenticationEntryPoint,
                           JwtAuthenticationFilter authenticationFilter){
-        this.userDetailsService = userDetailsService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.authenticationFilter = authenticationFilter;
     }
@@ -56,9 +55,8 @@ public class SecurityConfig {
 
        return http
                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Gestione CORS centralizzata
-               .csrf(csrf -> csrf.disable()) // Disabilitato solo se API REST stateless
+               .csrf(AbstractHttpConfigurer::disable) // Disabilitato solo se API REST stateless
                .authorizeHttpRequests(auth -> auth
-                       .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                        .requestMatchers("/api/auth/**").permitAll()
                        .anyRequest().authenticated()
                )
@@ -75,7 +73,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://tuodominio.com")); // Specifica solo i domini sicuri
+        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Solo domini sicuri / Only safe domains
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
