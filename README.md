@@ -1,63 +1,59 @@
-Gym Management System – REST API (Spring Boot)
-Backend REST API for comprehensive gym management, designed with a scalable and secure architecture.
+# GymManagement – REST API
 
-🔥 Overview
-This project simulates a real-world system used by a gym to manage:
+A backend REST API for gym management built with Java Spring Boot.
+The system handles authentication, role-based access control,
+subscription management, and class booking.
 
-Users with different roles
+---
 
-Memberships
+## Tech Stack
 
-Classes and bookings
+- Java 17+
+- Spring Boot 3.x
+- Spring Security (JWT)
+- Spring Data JPA
+- MySQL
+- Maven
 
-The goal is to replicate realistic business logic and backend-side permission management.
+---
 
-🧠 Key Features
-JWT Authentication with Spring Security
+## Features
 
-Role Management (Admin, Instructor, Client) with granular authorizations
+- JWT authentication (register / login)
+- Role-based access control with three user types:
+    - **Admin** – full access: manage users, roles, subscriptions
+    - **Instructor** – manage classes and view participants
+    - **Client** – view profile, subscription, and book classes
+- Subscription types: monthly, quarterly, annual
+- Granular endpoint protection via `@PreAuthorize`
 
-Membership Management (monthly, quarterly, annual)
+---
 
-Class Booking System
+## API Endpoints (examples)
 
-Entity Relationships managed via JPA (OneToMany, ManyToOne)
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | Register a new user |
+| POST | /api/auth/login | Login and receive JWT token |
 
-🏗 Architecture
-The project follows a layered structure:
+### Users (Admin only)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/users | Get all users |
+| PATCH | /api/users/{id}/makeadmin | Promote user to Admin |
 
-Controller → handles HTTP requests
+---
 
-Service → business logic
+## Local Setup
 
-Repository → data access (Spring Data JPA)
+1. Clone the repository:
+   git clone https://github.com/ManuelDiSab/GymManagement.git
 
-DTOs (Data Transfer Objects) are used to decouple internal models from the APIs.
+2. Configure the database in application.properties:
+   spring.datasource.url=jdbc:mysql://localhost:3306/gym_db
+   spring.datasource.username=your_user
+   spring.datasource.password=your_password
 
-🔐 Security
-Authentication via JWT
-
-Authorization via @PreAuthorize
-
-Endpoint protection based on user roles
-
-🛠 Tech Stack
-Java 17
-
-Spring Boot 3
-
-Spring Security (JWT)
-
-Spring Data JPA
-
-MySQL
-
-Maven
-
-⚙️ Setup
-Clone the repository
-
-Configure MySQL
-
-Run with:
-mvn spring-boot:run
+3. Run the application:
+   ./mvnw spring-boot:run
