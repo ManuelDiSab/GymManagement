@@ -75,16 +75,21 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(registerDto.getUsername());
         user.setEmail(registerDto.getEmail());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        // Creo un set vuoto
+        // IT: Creo un set vuoto |EN: I create an empty set
         Set<Role> roles = new HashSet<>();
-        // I valori li assegno in base se passo i ruoli dal client o meno.
+        // IT: I valori li assegno in base se passo i ruoli dal client o meno.
+        // EN: I assign the values based on whether I pass the roles from the client or not.
         if(registerDto.getRoles() != null) {
             registerDto.getRoles().forEach(role -> {
                 ERole eRole = getRole(role);
-                // 🔒 Blocco Privilege Escalation: il ruolo ADMIN non può essere
-                // auto-assegnato durante la registrazione pubblica.
-                // Per promuovere un utente ad ADMIN, usare l'endpoint dedicato:
-                // PATCH /api/users/{id}/makeadmin  (solo Admin può chiamarlo)
+                /* IT: Blocco Privilege Escalation: il ruolo ADMIN non può essere
+                 * auto-assegnato durante la registrazione pubblica.
+                 * Per promuovere un utente ad ADMIN, usare l'endpoint dedicato:
+                 * PATCH /api/users/{id}/makeadmin  (solo Admin può chiamarlo)
+                 * EN: Privilege Escalation Block: The ADMIN role cannot be
+                 * self-assigned during public registration.
+                 * To promote a user to ADMIN, use the dedicated endpoint:
+                 * PATCH /api/users/{id}/makeadmin (only Admin can call it) */
                 if(eRole == ERole.ROLE_ADMIN) {
                     throw new MyAPIException(HttpStatus.FORBIDDEN,
                         "Non puoi assegnarti il ruolo ADMIN in fase di registrazione.");
@@ -119,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
         Set<Role> userRoles = new HashSet<>();
         User user  = admin.getObject(userRoles);
 
-        // Se l'admin esiste non faccio niente | If admin already exist do nothing
+        //IT: Se l'admin esiste non faccio niente | EN: If admin already exist do nothing
         if(userRepository.existsByUsername(user.getUsername())) return;
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRoles.add(roleRepository.findByRoleName(ERole.ROLE_ADMIN).orElse(null));
