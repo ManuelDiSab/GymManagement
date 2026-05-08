@@ -1,6 +1,7 @@
 package org.example.gym_management.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.example.gym_management.security.entity.ERole;
 import org.example.gym_management.security.entity.Role;
 import org.example.gym_management.security.payload.LoginDto;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Transactional
 class AuthControllerIT {
     @Autowired
     private MockMvc mockMvc;
@@ -46,24 +47,23 @@ class AuthControllerIT {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-//        roleRepository.deleteAll();
-//
-//        roleRepository.saveAll(List.of(
-//                new Role( ERole.ROLE_CLIENT),
-//                new Role(, ERole.ROLE_INSTRUCTOR),
-//                new Role(, ERole.ROLE_ADMIN)
-//        ));
+        roleRepository.deleteAll();
+        roleRepository.saveAll(List.of(
+                new Role(null, ERole.ROLE_CLIENT),
+                new Role( null, ERole.ROLE_INSTRUCTOR),
+                new Role( null, ERole.ROLE_ADMIN)
+        ));
     }
 
     @Test
     @DisplayName("Post /api/auth/regiter or /api/auth/signup -> Success")
     void RegisterSuccess() throws Exception {
         RegisterDto dto = new RegisterDto();
-        dto.setUsername("test");
+        dto.setName("Gianni");
+        dto.setUsername("testUser");
         dto.setEmail("test@mail");
         dto.setPassword("password");
         dto.setRoles(Set.of("CLIENT"));
-
         mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -74,7 +74,7 @@ class AuthControllerIT {
     @Test
     @DisplayName("Post /api/auth/regiter or /api/auth/signup -> Should fail because username already exists (409 conflict)")
     void RegisterUserAlreadyExisting() throws Exception {
-        RegisterDto dto = new RegisterDto("Sandro","test", "test@mail", "password", Set.of("CLIENT"));
+        RegisterDto dto = new RegisterDto("Sandro","testUser", "test@mail", "password", Set.of("CLIENT"));
         authService.register(dto);
 
         RegisterDto dtoDuplicated = new RegisterDto("Sandro","test", "cvbvd@mail", "password", Set.of("CLIENT"));
@@ -87,9 +87,9 @@ class AuthControllerIT {
     }
 
     @Test
-    @DisplayName("Post /api/auth/regiter or /api/auth/signup -> Should fail because email already exists (409 conflict)")
+    @DisplayName("Post /api/auth/register or /api/auth/signup -> Should fail because email already exists (409 conflict)")
     void RegisterEmailAlreadyExisting() throws Exception {
-        RegisterDto dto = new RegisterDto("Sandro","test", "test@mail", "password", Set.of("CLIENT"));
+        RegisterDto dto = new RegisterDto("Sandro","testUser", "test@mail", "password", Set.of("CLIENT"));
         authService.register(dto);
 
         RegisterDto dtoDuplicated = new RegisterDto("Sandro","testDuplicato", "test@mail", "password", Set.of("CLIENT"));
@@ -119,44 +119,25 @@ class AuthControllerIT {
     }
 
     @Test
-    @DisplayName("Post /api/auth/login or /api/auth/signin -> Success (200 + JWT)" )
+    @DisplayName("Post /api/auth/login -> Success (200 + JWT)")
     void LoginSuccess() throws Exception {
-        //Registering first
-        RegisterDto dto = new RegisterDto();
-        dto.setUsername("test");
-        dto.setEmail("test@mail");
-        dto.setPassword("password");
-        dto.setRoles(Set.of("CLIENT"));
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
+        RegisterDto dto = new RegisterDto("Mario", "test", "test@mail", "password", Set.of("CLIENT"));
+        authService.register(dto);
+
+        LoginDto loginDto = new LoginDto("test", "password");
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated());
-        //Login after register
-        LoginDto loginDto = new LoginDto();
-        loginDto.setPassword("password");
-        loginDto.setUsername("test");
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/login")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginDto)))
-                .andDo(print()).andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists());
     }
 
     @Test
-    @DisplayName("Login with wrong credential should return 401 anauthorized")
+    @DisplayName("Login with wrong credential should return 401 unauthorized")
     void LoginWrongCredential() throws Exception {
-        RegisterDto dto = new RegisterDto();
-        dto.setUsername("test");
-        dto.setEmail("test@mail");
-        dto.setPassword("password");
-        dto.setRoles(Set.of("CLIENT"));
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/auth/register")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated());
+        RegisterDto dto = new RegisterDto("Mario", "test", "test@mail", "password", Set.of("CLIENT"));
+        authService.register(dto);
         //Login after register
         LoginDto loginDto = new LoginDto();
         loginDto.setPassword("passeorddd"); // Wrong password
