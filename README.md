@@ -50,10 +50,17 @@ subscription management, and class booking.
 1. Clone the repository:
    git clone https://github.com/ManuelDiSab/GymManagement.git
 
-2. Configure the database in application.properties:
-   spring.datasource.url=jdbc:mysql://localhost:3306/gym_db
-   spring.datasource.username=your_user
-   spring.datasource.password=your_password
+2. Create an `app.env` file in the project root with the following variables:
+   JWT_SECRET=your_jwt_secret_key_min_64_chars
+   ADMIN_USERNAME=your_admin_username
+   ADMIN_EMAIL=your_admin_email
+   ADMIN_PASSWORD=your_admin_password
+   DB_PASSWORD=your_database_password
 
-3. Run the application:
+3. Make sure MySQL is running and the database exists:
+   CREATE DATABASE gym_db;
+
+4. Run the application:
    ./mvnw spring-boot:run
+
+The application will automatically create the Super Admin user on first startup.
